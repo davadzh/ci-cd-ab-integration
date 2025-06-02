@@ -1,0 +1,33 @@
+body,
+html {
+  margin: 0;
+  padding: 0;
+  background: #141414;
+}
+
+* {
+  user-select: none;
+  font-family: "Montserrat", sans-serif;
+
+  ::-webkit-scrollbar {
+    height: 100%;
+    background: transparent;
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: none;
+    margin-top: 4px;
+    margin-bottom: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    padding: 0 4px 0 0;
+    border-right: 4px solid transparent;
+    width: 2px;
+    /*TODO add to palette*/
+    background: rgba(255, 255, 255, 0.32);
+    background-clip: padding-box;
+    cursor: pointer;
+  }
+}

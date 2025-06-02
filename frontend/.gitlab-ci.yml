@@ -1,0 +1,58 @@
+stages:
+  - deps
+  - lint
+  - build
+  - build_image
+  - push
+  - toggle_flag
+
+variables:
+  IMAGE_NAME: "frontend"
+  REGISTRY: "localhost:4200"
+
+install_deps:
+  stage: deps
+  image: node:20-alpine
+  cache:
+    key: $CI_COMMIT_REF_SLUG
+    paths: [node_modules/]
+  script:
+    - npm ci --prefer-offline
+
+lint:
+  stage: lint
+  image: node:20-alpine
+  script:
+    - npm run lint
+
+build:
+  stage: build
+  image: node:20
+  script:
+    - npm ci
+    - npm run build
+  artifacts:
+    paths:
+      - dist/  # или build/ — в зависимости от сборщика
+    expire_in: 1 hour
+
+build_and_push_image:
+  stage: build_image
+  image: docker:latest
+  script:
+    - docker build -t $REGISTRY/$IMAGE_NAME:$CI_COMMIT_SHORT_SHA .
+    - docker tag  $REGISTRY/$IMAGE_NAME:$CI_COMMIT_SHORT_SHA $REGISTRY/$IMAGE_NAME:latest
+    - docker push $REGISTRY/$IMAGE_NAME:$CI_COMMIT_SHORT_SHA
+    - docker push $REGISTRY/$IMAGE_NAME:latest
+  when: manual
+
+growthbook_toggle:
+  stage: toggle_flag
+  image: curlimages/curl:latest
+  script:
+    - |
+      curl -X POST http://growthbook:3100/api/features/cartButtonType \
+           -H "Authorization: Bearer $GB_TOKEN" \
+           -H "Content-Type: application/json" \
+           -d '{"defaultValue":"icon","rules":[{"condition":{"$hashAttribute":"id","$hashPercent":50},"force":"widget"}]}'
+  when: manual

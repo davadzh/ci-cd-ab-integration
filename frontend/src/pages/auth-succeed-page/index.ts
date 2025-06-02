@@ -1,0 +1,1 @@
+export { AuthSucceedPage } from './components/auth-succeed-page'

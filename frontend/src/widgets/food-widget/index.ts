@@ -1,0 +1,1 @@
+export { FoodWidget } from './components/food-widget'

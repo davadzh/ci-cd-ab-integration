@@ -1,0 +1,1 @@
+export { AddToCart } from './components/add-to-cart'

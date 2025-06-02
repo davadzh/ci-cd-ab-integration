@@ -1,0 +1,1 @@
+export { RestaurantsPage } from './components/restaurants-page'

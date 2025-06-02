@@ -1,0 +1,1 @@
+export { FoodGroupBarWidget } from './components/food-group-bar-widget'

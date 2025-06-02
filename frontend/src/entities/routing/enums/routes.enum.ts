@@ -1,0 +1,8 @@
+export enum RoutesEnum {
+  SIGN_IN = 'SIGN_IN',
+  AUTH_SUCCEED = 'AUTH_SUCCEED',
+  RESTAURANTS = 'RESTAURANTS',
+  MENU = 'MENU',
+  CART = 'CART',
+  NOT_FOUND = 'NOT_FOUND',
+}

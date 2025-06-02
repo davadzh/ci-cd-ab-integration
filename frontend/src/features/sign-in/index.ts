@@ -1,0 +1,1 @@
+export { AuthViaYandex } from './components/auth-via-yandex'

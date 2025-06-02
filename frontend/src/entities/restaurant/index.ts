@@ -1,0 +1,1 @@
+export { useRestaurantList } from './lib/hooks/use-restaurant-list'

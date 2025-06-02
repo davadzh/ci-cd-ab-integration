@@ -1,0 +1,1 @@
+export { HeaderWidget } from './components/header-widget'

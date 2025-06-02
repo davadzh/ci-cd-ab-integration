@@ -1,0 +1,1 @@
+export { GoToCart } from './components/go-to-cart'

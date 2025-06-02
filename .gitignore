@@ -1,0 +1,10 @@
+/**/node_modules
+.DS_Store
+.idea
+/**/.idea
+/**/dist
+/data
+/config
+/gitlab
+.env
+/ssh-data

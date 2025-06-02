@@ -1,0 +1,135 @@
+version: '3.8'
+
+networks:
+  gitlab-net:
+    name: gitlab-net
+    driver: bridge
+
+services:
+  db:
+    image: postgres:15
+    restart: always
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - '5432:5432'
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    env_file:
+      - .env
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+      SCRIPT_NAME: /pgadmin
+    expose:
+      - "80"
+    depends_on:
+      - db
+
+  backend:
+    image: localhost:4200/backend:latest
+    restart: on-failure
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB_URL: ${POSTGRES_DB_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
+    ports:
+      - '5050:3000'
+    depends_on:
+      - db
+
+  frontend:
+    image: localhost:4200/frontend:latest
+    restart: on-failure
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    ports: []
+    depends_on:
+      - registry
+      - backend
+
+  gitlab-server:
+    image: 'gitlab/gitlab-ce:latest'
+    container_name: gitlab-server
+    networks: [gitlab-net]
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://gitlab-server'
+        nginx['listen_port'] = 80
+        gitlab_rails['gitlab_shell_ssh_port'] = 2224
+        gitlab_rails['initial_root_password'] = '123456'
+    volumes:
+      - ./gitlab/config:/etc/gitlab
+      - ./gitlab/data:/var/opt/gitlab
+      - ./gitlab/logs:/var/log/gitlab
+    ports:
+      - '8080:80'
+      - '2224:22'
+
+  gitlab-runner:
+    image: gitlab/gitlab-runner:alpine
+    container_name: gitlab-runner
+    networks: [gitlab-net]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  registry:
+    image: registry:2
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "4200:5000"
+    volumes:
+      - registry-data:/var/lib/registry
+
+  mongo:
+    image: mongo:latest
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    volumes:
+      - mongodata:/data/db
+
+  growthbook:
+    image: growthbook/growthbook:latest
+    depends_on:
+      - mongo
+    ports:
+      - "3000:3000"   # UI
+      - "3100:3100"   # API
+    environment:
+      MONGODB_URI: "mongodb://root:password@mongo:27017/growthbook?authSource=admin"
+      DISABLE_CHANGE_STREAMS: "true"
+    volumes:
+      - uploads:/usr/local/src/app/packages/back-end/uploads
+
+  watchtower:
+    image: containrrr/watchtower:latest
+    restart: always
+    networks: [ gitlab-net ]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      WATCHTOWER_LABEL_ENABLE: "true"
+      WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_POLL_INTERVAL: 15
+
+volumes:
+  db-data:
+  gitlab-config:
+  gitlab-logs:
+  gitlab-data:
+  registry-data:
+  mongodata:
+  uploads:
